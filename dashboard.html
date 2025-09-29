@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Дашборд: Эскалации (04.09.2025–10.09.2025)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --muted: #94a3b8;
+      --text: #e5e7eb;
+      --accent: #22c55e; /* green */
+      --danger: #ef4444; /* red */
+      --warn: #f59e0b;   /* amber */
+      --brand1: #60a5fa; /* Кровли */
+      --brand2: #34d399; /* Подвалы */
+      --brand3: #f472b6; /* Лифты */
+      --card: #0b1220;
+      --ring: rgba(255,255,255,0.08);
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1200px 800px at 10% -10%, #1f2937 0%, var(--bg) 40%) no-repeat;
+      color: var(--text);
+    }
+    .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+    header { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+    header h1 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: 0.2px; }
+    .sub { color: var(--muted); font-size: 14px; }
+    .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; margin-top: 20px; }
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border: 1px solid var(--ring);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 1px 0 0 rgba(255,255,255,0.04) inset, 0 10px 30px rgba(0,0,0,0.20);
+    }
+    .kpi { grid-column: span 4; }
+    .kpi h3 { margin: 0 0 8px; font-size: 14px; color: var(--muted); font-weight: 500; }
+    .kpi .value { font-size: 28px; font-weight: 700; letter-spacing: 0.2px; }
+    .trend { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; margin-top: 8px; padding: 4px 8px; border-radius: 999px; background: rgba(255,255,255,0.04); border: 1px solid var(--ring); }
+    .trend.up { color: var(--danger); }
+    .trend.down { color: var(--accent); }
+    .split { grid-column: span 12; display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px; }
+    .legend { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+    .legend .item { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; }
+    .legend .dot { width: 10px; height: 10px; border-radius: 2px; }
+    .muted { color: var(--muted); }
+    .list { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+    .row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; background: var(--card); border: 1px solid var(--ring); }
+    .row strong { font-weight: 600; }
+    .pill { font-size: 12px; padding: 4px 8px; border-radius: 999px; border: 1px solid var(--ring); background: rgba(255,255,255,0.04); color: var(--text); }
+    .sep { height: 1px; background: var(--ring); margin: 12px 0; }
+    .small { font-size: 12px; color: var(--muted); }
+    canvas { width: 100% !important; height: 360px !important; }
+
+    /* Breakdown cards */
+    .bgrid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; }
+    .bcard { grid-column: span 4; }
+    .bhead { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+    .btitle { font-weight: 600; }
+    .btotal { font-size: 13px; color: var(--muted); }
+    .stack { display: flex; width: 100%; height: 10px; border-radius: 999px; overflow: hidden; border: 1px solid var(--ring); background: rgba(255,255,255,0.04); }
+    .seg { height: 100%; }
+    .stats { margin-top: 10px; display: grid; gap: 8px; }
+    .srow { display: flex; justify-content: space-between; align-items: center; }
+    .sname { color: var(--muted); font-size: 12px; }
+    .sval { font-size: 12px; }
+
+    @media (max-width: 960px) {
+      .kpi { grid-column: span 6; }
+      .split { grid-template-columns: 1fr; }
+      .bcard { grid-column: span 6; }
+    }
+    @media (max-width: 640px) {
+      .kpi { grid-column: span 12; }
+      canvas { height: 300px !important; }
+      .bcard { grid-column: span 12; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1>Эскалации (04.09.2025–10.09.2025)</h1>
+        <div class="sub">Сводный дашборд: кровли, подвалы, лифты</div>
+      </div>
+      <div class="legend">
+        <span class="item"><span class="dot" style="background: var(--brand1)"></span>Кровли</span>
+        <span class="item"><span class="dot" style="background: var(--brand2)"></span>Подвалы</span>
+        <span class="item"><span class="dot" style="background: var(--brand3)"></span>Лифты</span>
+      </div>
+    </header>
+
+    <section class="grid">
+      <!-- KPI cards -->
+      <div class="card kpi">
+        <h3>Протечки кровли</h3>
+        <div class="value">45 адресов</div>
+        <div class="trend down">−39,19% за неделю</div>
+        <div class="small" style="margin-top:8px">За 24 часа решено: 34 (75,56%) · В работе: 11 (24,44%)</div>
+      </div>
+
+      <div class="card kpi">
+        <h3>Подтопление подвалов</h3>
+        <div class="value">252 адреса</div>
+        <div class="trend up">+14,03% за неделю</div>
+        <div class="small" style="margin-top:8px">За 24 часа решено: 196 (77,78%) · В работе: 56 (22,22%)</div>
+      </div>
+
+      <div class="card kpi">
+        <h3>Работа лифтового оборудования</h3>
+        <div class="value">314 адреса</div>
+        <div class="trend up">+11,35% за неделю</div>
+        <div class="small" style="margin-top:8px">Решено: 235 (74,84%) · В работе: 79 (25,16%)</div>
+      </div>
+
+      <!-- Chart and elevator details -->
+      <div class="card split">
+        <div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <strong>Сравнение показателей</strong>
+            <span class="muted small">Неделя: 04–10 сен 2025</span>
+          </div>
+          <canvas id="bars"></canvas>
+        </div>
+        <div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <strong>Детализация по лифтам</strong>
+            <span class="muted small">Статус работ</span>
+          </div>
+          <ul class="list">
+            <li class="row">
+              <span>Адреса с альтернативным работающим лифтом</span>
+              <span class="pill">73</span>
+            </li>
+            <li class="row">
+              <span>Все лифты в подъезде остановлены</span>
+              <span class="pill" style="background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.35); color:#fecaca">6</span>
+            </li>
+            <li class="row">
+              <span>Закупка комплектующих</span>
+              <span class="pill">6 адресов</span>
+            </li>
+            <li class="row">
+              <span>Решено за период</span>
+              <span class="pill" style="background: rgba(34,197,94,0.08); border-color: rgba(34,197,94,0.35); color:#bbf7d0">235</span>
+            </li>
+            <li class="row">
+              <span>В работе</span>
+              <span class="pill">79</span>
+            </li>
+          </ul>
+          <div class="sep"></div>
+          <div class="small">Прирост обращений по лифтам за неделю: <strong class="trend up" style="padding:2px 6px">+11,35%</strong></div>
+        </div>
+      </div>
+
+      <!-- New: Breakdown section with totals and categories -->
+      <div class="card" style="grid-column: span 12;">
+        <div class="bhead">
+          <div class="btitle">Разбивка по категориям (суммарные данные)</div>
+          <div class="btotal small">Источник: оперативные отчёты</div>
+        </div>
+        <div class="bgrid">
+          <div class="bcard">
+            <div class="bhead">
+              <div class="btitle">Кровли</div>
+              <div class="btotal">Итого: <strong>1 881</strong></div>
+            </div>
+            <div class="stack" aria-label="Доля категорий (Кровли)">
+              <div class="seg" style="width: 27.28%; background:#64748b" title="Вне: 513"></div>
+              <div class="seg" style="width: 51.09%; background:#22c55e" title="Решено: 961"></div>
+              <div class="seg" style="width: 11.11%; background:#94a3b8" title="Дубль: 209"></div>
+              <div class="seg" style="width: 10.42%; background:#f59e0b" title="Контроль: 196"></div>
+              <div class="seg" style="width: 0.11%; background:#a78bfa" title="КНМ: 2"></div>
+            </div>
+            <div class="stats">
+              <div class="srow"><span class="sname">Вне</span><span class="sval">513 · 27,28%</span></div>
+              <div class="srow"><span class="sname">Решено</span><span class="sval">961 · 51,09%</span></div>
+              <div class="srow"><span class="sname">Дубль</span><span class="sval">209 · 11,11%</span></div>
+              <div class="srow"><span class="sname">Контроль</span><span class="sval">196 · 10,42%</span></div>
+              <div class="srow"><span class="sname">КНМ</span><span class="sval">2 · 0,11%</span></div>
+            </div>
+          </div>
+          <div class="bcard">
+            <div class="bhead">
+              <div class="btitle">Лифты</div>
+              <div class="btotal">Итого: <strong>1 967</strong></div>
+            </div>
+            <div class="stack" aria-label="Доля категорий (Лифты)">
+              <div class="seg" style="width: 22.48%; background:#64748b" title="Вне: 442"></div>
+              <div class="seg" style="width: 61.49%; background:#22c55e" title="Решено: 1 209"></div>
+              <div class="seg" style="width: 12.76%; background:#94a3b8" title="Дубль: 251"></div>
+              <div class="seg" style="width: 3.05%; background:#f59e0b" title="Контроль: 60"></div>
+              <div class="seg" style="width: 0.25%; background:#a78bfa" title="КНМ: 5"></div>
+            </div>
+            <div class="stats">
+              <div class="srow"><span class="sname">Вне</span><span class="sval">442 · 22,48%</span></div>
+              <div class="srow"><span class="sname">Решено</span><span class="sval">1 209 · 61,49%</span></div>
+              <div class="srow"><span class="sname">Дубль</span><span class="sval">251 · 12,76%</span></div>
+              <div class="srow"><span class="sname">Контроль</span><span class="sval">60 · 3,05%</span></div>
+              <div class="srow"><span class="sname">КНМ</span><span class="sval">5 · 0,25%</span></div>
+            </div>
+          </div>
+          <div class="bcard">
+            <div class="bhead">
+              <div class="btitle">Подвалы</div>
+              <div class="btotal">Итого: <strong>2 532</strong></div>
+            </div>
+            <div class="stack" aria-label="Доля категорий (Подвалы)">
+              <div class="seg" style="width: 32.19%; background:#64748b" title="Вне: 815"></div>
+              <div class="seg" style="width: 53.90%; background:#22c55e" title="Решено: 1 365"></div>
+              <div class="seg" style="width: 11.06%; background:#94a3b8" title="Дубль: 280"></div>
+              <div class="seg" style="width: 2.68%; background:#f59e0b" title="Контроль: 68"></div>
+              <div class="seg" style="width: 0.16%; background:#a78bfa" title="КНМ: 4"></div>
+            </div>
+            <div class="stats">
+              <div class="srow"><span class="sname">Вне</span><span class="sval">815 · 32,19%</span></div>
+              <div class="srow"><span class="sname">Решено</span><span class="sval">1 365 · 53,90%</span></div>
+              <div class="srow"><span class="sname">Дубль</span><span class="sval">280 · 11,06%</span></div>
+              <div class="srow"><span class="sname">Контроль</span><span class="sval">68 · 2,68%</span></div>
+              <div class="srow"><span class="sname">КНМ</span><span class="sval">4 · 0,16%</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <footer class="small" style="margin-top: 20px; color: var(--muted)">
+      Обновление: 10.09.2025 · Источник: оперативные отчёты эскалаций
+    </footer>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script>
+    // Grouped bars: weekly snapshot
+    const ctx = document.getElementById('bars');
+    if (ctx) {
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Обращения', 'Решено за 24ч', 'В работе'],
+          datasets: [
+            { label: 'Кровли', data: [45, 34, 11], backgroundColor: 'rgba(96,165,250,0.7)', borderColor: 'rgba(96,165,250,1)', borderWidth: 1, borderRadius: 6, maxBarThickness: 36 },
+            { label: 'Подвалы', data: [252, 196, 56], backgroundColor: 'rgba(52,211,153,0.7)', borderColor: 'rgba(52,211,153,1)', borderWidth: 1, borderRadius: 6, maxBarThickness: 36 },
+            { label: 'Лифты',  data: [314, 235, 79], backgroundColor: 'rgba(244,114,182,0.7)', borderColor: 'rgba(244,114,182,1)', borderWidth: 1, borderRadius: 6, maxBarThickness: 36 }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { labels: { color: '#cbd5e1', boxWidth: 12, boxHeight: 12 } },
+            tooltip: { enabled: true }
+          },
+          scales: {
+            x: { ticks: { color: '#cbd5e1' }, grid: { display: false } },
+            y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,0.18)' }, beginAtZero: true }
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>
+
