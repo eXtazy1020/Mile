@@ -43,6 +43,7 @@
       box-shadow: 0 1px 0 0 rgba(255,255,255,0.04) inset, 0 10px 30px rgba(0,0,0,0.20);
     }
     .kpi { grid-column: span 4; }
+    .pie { grid-column: span 6; }
     .kpi h3 { margin: 0 0 8px; font-size: 14px; color: var(--muted); font-weight: 500; }
     .kpi .value { font-size: 28px; font-weight: 700; letter-spacing: 0.2px; }
     .trend { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; margin-top: 8px; padding: 4px 8px; border-radius: 999px; background: rgba(255,255,255,0.04); border: 1px solid var(--ring); }
@@ -164,6 +165,15 @@
         </div>
       </div>
 
+      <!-- Doughnut: Lifts status distribution -->
+      <div class="card pie">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <strong>Круговая диаграмма: Лифты по статусам</strong>
+          <span class="muted small">Итого: 1 967</span>
+        </div>
+        <canvas id="pie"></canvas>
+      </div>
+
       <!-- New: Breakdown section with totals and categories -->
       <div class="card" style="grid-column: span 12;">
         <div class="bhead">
@@ -266,6 +276,33 @@
           scales: {
             x: { ticks: { color: '#cbd5e1' }, grid: { display: false } },
             y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,0.18)' }, beginAtZero: true }
+          }
+        }
+      });
+    }
+
+    // Doughnut: Lifts status distribution (total)
+    const pieCtx = document.getElementById('pie');
+    if (pieCtx) {
+      new Chart(pieCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Вне', 'Решено', 'Дубль', 'Контроль', 'КНМ'],
+          datasets: [
+            {
+              data: [442, 1209, 251, 60, 5],
+              backgroundColor: ['#64748b', '#22c55e', '#94a3b8', '#f59e0b', '#a78bfa'],
+              borderColor: 'rgba(0,0,0,0)'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '62%',
+          plugins: {
+            legend: { labels: { color: '#cbd5e1' } },
+            tooltip: { enabled: true }
           }
         }
       });
